@@ -45,13 +45,13 @@ async function count(event, ms = 3000) {
  * A stand-in manager that answers its health checks as `answers` says, one each and then the last one again,
  * and drops every other request, so its page never loads: a manager that answered and then went away.
  */
-async function stub(answers) {
+async function stub(answers, version = '0.0.0-development') {
   const stand = { checks: 0 };
   const server = http.createServer(async (req, res) => {
     if (!req.url.startsWith('/api/v1/health')) return req.socket.destroy();
     const live = await answers[Math.min(stand.checks++, answers.length - 1)]();
     res.writeHead(live ? 200 : 503, { 'content-type': 'application/json' });
-    res.end(JSON.stringify(live ? { ok: true, name: 'agent-guild', version: '0.0.0-development' } : { ok: false }));
+    res.end(JSON.stringify(live ? { ok: true, name: 'agent-guild', version } : { ok: false }));
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   stand.url = `http://127.0.0.1:${server.address().port}`;
@@ -212,6 +212,20 @@ exports.run = async () => {
     assert.deepEqual([tabs, views], [0, 0], 'after a restart, neither page reloads again');
     assert.equal(api.yard.status, 'yard');
     console.log('After the manager restarts, the tab and the view each reconnect once.');
+
+    // An upgrade from the tab: the view showed the update notice, and the tab reconnects to the new manager in place.
+    const old = await stub([() => true], '1.4.0');
+    pointAt(old.url);
+    api.yard.receive({ kind: 'action', action: 'retry' });
+    await until(() => api.yard.status === 'ready', 'The view asking for an update');
+    restore();
+    const upgraded = next(api.onViewReady, 'The view showing the Yard after the upgrade');
+    await call('POST', '/shutdown', { force: true, restart: true });
+    await upgraded;
+    assert.equal(api.yard.status, 'yard');
+    assert.equal(await count(api.onViewReady), 0, 'the upgraded view loads its page once');
+    await old.close();
+    console.log('After an upgrade through the tab, the view shows the Yard without being hidden.');
   } finally {
     restore();
   }
