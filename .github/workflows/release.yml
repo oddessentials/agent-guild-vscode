@@ -60,7 +60,7 @@ jobs:
       - name: Publish to Open VSX
         if: steps.version.outputs.new == 'true'
         env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+          OVSX_PAT: ${{ secrets.OSVX_PAT }}
         run: npx --yes ovsx@1.3.0 publish --skip-duplicate "agent-guild-${{ steps.version.outputs.version }}.vsix"
       - name: GitHub release
         if: steps.version.outputs.new == 'true'
