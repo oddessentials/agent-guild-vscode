@@ -1,7 +1,7 @@
 {
   "name": "agent-guild",
-  "displayName": "Agent Guild",
-  "description": "Launch and watch your AI coding-assistant sessions from an editor tab, with the same sessions your browser shows.",
+  "displayName": "Agent Guild: AI Coding Agents",
+  "description": "Run Claude Code, Codex CLI, Antigravity CLI, Grok Build and Docker Agent side by side in real terminals, from a VS Code tab.",
   "version": "0.0.0",
   "publisher": "OddEssentials",
   "license": "SEE LICENSE IN LICENSE",
@@ -18,18 +18,45 @@
   "bugs": {
     "url": "https://github.com/oddessentials/agent-guild-vscode/issues"
   },
+  "qna": "https://github.com/oddessentials/agent-guild-vscode/issues",
+  "sponsor": {
+    "url": "https://oddessentials.ai/donate/?ref=agent-guild-vscode"
+  },
+  "pricing": "Free",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "AI"
   ],
   "keywords": [
+    "ai",
+    "ai agents",
+    "coding agents",
+    "agent",
     "agents",
+    "multi-agent",
+    "parallel agents",
+    "agent manager",
+    "agent dashboard",
+    "dashboard",
+    "claude",
     "claude code",
+    "anthropic",
     "codex",
+    "codex cli",
+    "openai",
+    "antigravity",
+    "antigravity cli",
+    "grok",
+    "grok build",
+    "xai",
+    "docker agent",
+    "docker",
     "terminal",
-    "sessions"
+    "tmux",
+    "sessions",
+    "session manager"
   ],
   "extensionKind": [
     "ui"

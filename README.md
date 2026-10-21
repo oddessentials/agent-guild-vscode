@@ -10,6 +10,26 @@ Open [Agent Guild](https://github.com/oddessentials/agent-guild) in an editor ta
 - Closing the tab or VS Code leaves your sessions running. The tab comes back the next time VS Code starts.
 - Links open in your default browser.
 
+![Agent Guild opening from the status bar, then a Shell session starting from its card](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/demo.gif)
+
+## What Agent Guild does
+
+Agent Guild runs Claude Code, Codex CLI, Antigravity CLI, Grok Build, Docker Agent and your own shell side by side, in real terminals that keep running when the page closes.
+
+- One card per tool: install and update it, start sessions, and see its helper agents and the model in use.
+- Two terminals side by side with **Split**.
+- Rate-limit meters for Claude Code and Codex CLI.
+- Resume a tool's earlier sessions, and see what it remembers and which instruction files it reads.
+- Several accounts per tool, and model grades and benchmarks.
+- GitHub issues, pull requests and workflow runs for the working folder.
+- tmux and herdr sessions that keep running when the manager stops.
+
+![A Claude Code session's terminal, with its helper agents in the header](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/terminal.png)
+
+![Claude Code's earlier sessions, each with a Resume button](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/history.png)
+
+![Claude Code's models with their coding, intelligence and agentic benchmarks](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/models.png)
+
 ## Requirements
 
 - Node.js 22 or newer.
