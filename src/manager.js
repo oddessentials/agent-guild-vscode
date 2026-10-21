@@ -9,6 +9,8 @@ const { spawn } = require('child_process');
 const MIN_VERSION = '1.2.0';
 /** The first manager whose page opens the view VS Code asks for. */
 const YARD_VERSION = '1.3.0';
+/** The first manager whose page can fill a small view with the Yard. */
+const VIEW_VERSION = '1.5.0';
 const PACKAGE = '@oddessentials/agent-guild';
 
 /** The manager's per-user data folder, by the same rules as agent-guild's src/manager/config.mjs. */
@@ -109,6 +111,29 @@ function pageSrc({ url, token, version }, view) {
   return `${url}/#${hash}`;
 }
 
+/** The page's address in the small view, in the tab's last look. */
+function compactSrc({ url, token }, look) {
+  const hash = new URLSearchParams({ token, layout: 'compact' });
+  if (look) {
+    hash.set('skin', look.skin);
+    hash.set('theme', look.theme);
+  }
+  return `${url}/#${hash}`;
+}
+
+/** The skin and theme a page reported, or null. */
+function readLook(value) {
+  const skin = value?.skin;
+  const theme = value?.theme;
+  if (typeof skin !== 'string' || !/^[a-z][a-z0-9-]{0,31}$/.test(skin) || (theme !== 'light' && theme !== 'dark')) return null;
+  return { skin, theme };
+}
+
+/** A session id from a page, or null. */
+function sessionId(value) {
+  return typeof value === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(value) ? value : null;
+}
+
 /** The absolute http(s) URL `href` names, or null. */
 function webUrl(href) {
   try {
@@ -119,4 +144,6 @@ function webUrl(href) {
   }
 }
 
-module.exports = { MIN_VERSION, YARD_VERSION, PACKAGE, dataDir, readManager, health, newEnough, locate, startFailure, pageSrc, webUrl };
+module.exports = {
+  MIN_VERSION, YARD_VERSION, VIEW_VERSION, PACKAGE, dataDir, readManager, health, newEnough, locate, startFailure, pageSrc, compactSrc, readLook, sessionId, webUrl,
+};

@@ -2,7 +2,7 @@
 
 const vscode = require('vscode');
 const crypto = require('crypto');
-const { MIN_VERSION, YARD_VERSION, PACKAGE, health, locate, newEnough, pageSrc, webUrl } = require('./manager');
+const { MIN_VERSION, YARD_VERSION, PACKAGE, health, locate, newEnough, pageSrc, readLook, webUrl } = require('./manager');
 
 const VIEW_TYPE = 'agentGuild.page';
 const NODE_URL = 'https://nodejs.org/en/download';
@@ -11,34 +11,36 @@ class Panel {
   /** The one open tab, if any. */
   static current = null;
 
-  /** Bring the tab forward, connecting first if the manager went away or moved, and show `view` if one is asked for. */
-  static async open(ready, view) {
+  /** Bring the tab forward, connecting first if the manager went away or moved, and show `view` or open `session` if asked. */
+  static async open(events, view, session) {
     if (Panel.current) {
       Panel.current.panel.reveal();
-      return Panel.current.request(view);
+      return Panel.current.request(view, session);
     }
     const panel = vscode.window.createWebviewPanel(VIEW_TYPE, 'Agent Guild', vscode.ViewColumn.Active, {
       enableScripts: true,
       retainContextWhenHidden: true,
     });
-    const tab = new Panel(panel, ready);
+    const tab = new Panel(panel, events);
     tab.view = view;
+    tab.session = session;
     return tab.connect();
   }
 
   /** A tab VS Code brought back after a restart. */
-  static revive(panel, ready) {
-    return new Panel(panel, ready).connect();
+  static revive(panel, events) {
+    return new Panel(panel, events).connect();
   }
 
-  constructor(panel, ready) {
+  constructor(panel, events) {
     Panel.current?.panel.dispose();
     Panel.current = this;
     this.panel = panel;
-    this.ready = ready;
+    this.events = events;
     this.state = null;
     this.connecting = null;
     this.view = null;
+    this.session = null;
     panel.iconPath = vscode.Uri.joinPath(vscode.Uri.file(__dirname), '..', 'media', 'icon.png');
     panel.webview.options = { enableScripts: true };
     panel.onDidDispose(() => { if (Panel.current === this) Panel.current = null; });
@@ -66,12 +68,16 @@ class Panel {
     return this.connect();
   }
 
-  /** A view asked for while the tab is open: the page is loaded again only if its manager moved. */
-  async request(view) {
+  /** A view or session asked for while the tab is open: the page is loaded again only if its manager moved. */
+  async request(view, session) {
     this.view = view;
+    if (session) this.session = session;
     await this.refresh();
-    const asked = this.state?.state === 'ready' && this.take();
+    if (this.state?.state !== 'ready') return;
+    const asked = this.take();
     if (asked) this.panel.webview.postMessage({ kind: 'view', view: asked });
+    const id = this.takeSession();
+    if (id) this.panel.webview.postMessage({ kind: 'session', id });
   }
 
   /** The asked-for view, once. A blocked tab keeps it until the page can show it. */
@@ -83,15 +89,36 @@ class Panel {
     return null;
   }
 
+  /** The asked-for session, once. A blocked tab keeps it until the page can open it. */
+  takeSession() {
+    const id = this.session;
+    this.session = null;
+    return id;
+  }
+
   show(state) {
     this.state = state;
     const nonce = crypto.randomBytes(16).toString('hex');
-    this.panel.webview.html = state.state === 'ready' ? pageHtml(pageSrc(state, this.take()), state.url, nonce) : messageHtml(state, nonce);
+    if (state.state !== 'ready') {
+      this.panel.webview.html = messageHtml(state, nonce);
+      return;
+    }
+    this.panel.webview.html = pageHtml(pageSrc(state, this.take()), state.url, nonce, this.takeSession());
+    this.events.connected.fire(state);
   }
 
   receive(message) {
+    // A frame that finished loading may show the browser's error page: keep it only if its manager still answers.
+    if (message?.kind === 'frame') {
+      this.refresh();
+      return;
+    }
     if (message?.kind === 'page') {
-      if (message.type === 'ready') this.ready.fire(message.version);
+      if (message.type === 'ready') this.events.ready.fire(message.version);
+      if (message.type === 'look') {
+        const look = readLook(message);
+        if (look) this.events.look.fire(look);
+      }
       if (message.type === 'open') {
         const url = webUrl(message.url);
         if (url) vscode.env.openExternal(vscode.Uri.parse(url, true));
@@ -138,7 +165,7 @@ class Panel {
 
 const escape = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-function pageHtml(src, url, nonce) {
+function pageHtml(src, url, nonce, session) {
   return `<!doctype html><html><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; frame-src ${url}; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'">
 <style>html,body{margin:0;padding:0;height:100%;overflow:hidden}iframe{display:block;border:0;width:100%;height:100%}</style>
@@ -147,26 +174,28 @@ function pageHtml(src, url, nonce) {
 const vscode = acquireVsCodeApi();
 const frame = document.getElementById('page');
 const origin = ${JSON.stringify(url)};
-// The page listens for a view once it has loaded.
+// The page listens for requests once it has loaded.
 let loaded = false;
-let waiting = null;
-const showView = (view) => frame.contentWindow.postMessage({ source: 'agent-guild-vscode', type: 'view', view }, origin);
+const waiting = ${JSON.stringify(session ? [{ type: 'session', id: session }] : [])};
+const send = (message) => frame.contentWindow.postMessage({ source: 'agent-guild-vscode', ...message }, origin);
+const deliver = (message) => (loaded ? send(message) : waiting.push(message));
 frame.addEventListener('load', () => {
   loaded = true;
-  if (waiting) showView(waiting);
-  waiting = null;
+  waiting.splice(0).forEach(send);
+  vscode.postMessage({ kind: 'frame', type: 'load', page: '${nonce}' });
 });
 // Only the framed page's own messages are passed on.
 addEventListener('message', (event) => {
   if (event.source !== frame.contentWindow) {
-    const view = event.data?.kind === 'view' && event.data.view;
-    if (view === 'cards' || view === 'yard') loaded ? showView(view) : (waiting = view);
+    const data = event.data;
+    if (data?.kind === 'view' && (data.view === 'cards' || data.view === 'yard')) deliver({ type: 'view', view: data.view });
+    if (data?.kind === 'session' && typeof data.id === 'string') deliver({ type: 'session', id: data.id });
     return;
   }
   if (event.origin !== origin) return;
   const data = event.data;
   if (!data || data.source !== 'agent-guild') return;
-  vscode.postMessage({ kind: 'page', type: data.type, url: data.url, version: data.version });
+  vscode.postMessage({ kind: 'page', page: '${nonce}', type: data.type, url: data.url, version: data.version, skin: data.skin, theme: data.theme, session: data.session });
 });
 </script></body></html>`;
 }
@@ -198,6 +227,11 @@ function messageHtml(state, nonce) {
       actions: [['browser', 'Open in browser'], ['retry', 'Try again']],
     }
     : MESSAGES[state.state];
+  return noticeHtml(message, nonce, state.detail);
+}
+
+/** A notice whose buttons post `{ kind: 'action', action }`. */
+function noticeHtml(message, nonce, detail) {
   const buttons = message.actions.map(([action, label], i) =>
     `<button class="${i === 0 ? 'primary' : ''}" data-action="${action}">${escape(label)}</button>`).join('');
   return `<!doctype html><html><head><meta charset="utf-8">
@@ -214,7 +248,7 @@ button:focus-visible{outline:1px solid var(--vscode-focusBorder);outline-offset:
 </style></head><body><main>
 <h1>${escape(message.title)}</h1>
 ${message.text ? `<p>${escape(message.text)}</p>` : ''}
-${state.detail ? `<pre>${escape(state.detail)}</pre>` : ''}
+${detail ? `<pre>${escape(detail)}</pre>` : ''}
 <div>${buttons}</div>
 </main>
 <script nonce="${nonce}">
@@ -225,4 +259,4 @@ for (const button of document.querySelectorAll('button')) {
 </script></body></html>`;
 }
 
-module.exports = { Panel, VIEW_TYPE };
+module.exports = { Panel, VIEW_TYPE, pageHtml, noticeHtml };
