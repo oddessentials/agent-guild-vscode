@@ -108,6 +108,11 @@ class Panel {
   }
 
   receive(message) {
+    // A frame that finished loading may show the browser's error page: keep it only if its manager still answers.
+    if (message?.kind === 'frame') {
+      this.refresh();
+      return;
+    }
     if (message?.kind === 'page') {
       if (message.type === 'ready') this.events.ready.fire(message.version);
       if (message.type === 'look') {
@@ -177,6 +182,7 @@ const deliver = (message) => (loaded ? send(message) : waiting.push(message));
 frame.addEventListener('load', () => {
   loaded = true;
   waiting.splice(0).forEach(send);
+  vscode.postMessage({ kind: 'frame', type: 'load', page: '${nonce}' });
 });
 // Only the framed page's own messages are passed on.
 addEventListener('message', (event) => {
@@ -189,7 +195,7 @@ addEventListener('message', (event) => {
   if (event.origin !== origin) return;
   const data = event.data;
   if (!data || data.source !== 'agent-guild') return;
-  vscode.postMessage({ kind: 'page', type: data.type, url: data.url, version: data.version, skin: data.skin, theme: data.theme, session: data.session });
+  vscode.postMessage({ kind: 'page', page: '${nonce}', type: data.type, url: data.url, version: data.version, skin: data.skin, theme: data.theme, session: data.session });
 });
 </script></body></html>`;
 }

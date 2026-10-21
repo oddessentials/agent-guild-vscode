@@ -2,7 +2,7 @@
 
 const vscode = require('vscode');
 const crypto = require('crypto');
-const { VIEW_VERSION, locate, newEnough, compactSrc, readLook, sessionId, webUrl } = require('./manager');
+const { VIEW_VERSION, health, locate, newEnough, compactSrc, readLook, sessionId, webUrl } = require('./manager');
 const { Panel, pageHtml, noticeHtml } = require('./panel');
 
 const VIEW_ID = 'agentGuild.yard';
@@ -16,6 +16,11 @@ class YardView {
     this.events = events;
     this.view = null;
     this.shown = null;
+    this.url = null;
+    // The page now in the view, and whether its frame loaded and the page reached its manager.
+    this.page = null;
+    this.loaded = false;
+    this.ready = false;
     this.attempt = 0;
     this.status = null;
     // The tab's look, kept for the next time the view opens.
@@ -37,17 +42,26 @@ class YardView {
     this.view = view;
     this.shown = null;
     view.webview.options = { enableScripts: true };
-    view.onDidChangeVisibility(() => this.render());
+    view.onDidChangeVisibility(() => {
+      // A hidden view loses its page; VS Code loads it again when the view shows.
+      if (!view.visible) {
+        this.loaded = false;
+        this.ready = false;
+        return;
+      }
+      this.render();
+    });
     view.onDidDispose(() => {
       if (this.view !== view) return;
       this.view = null;
       this.shown = null;
+      this.page = null;
     });
     view.webview.onDidReceiveMessage((message) => this.receive(message));
     return this.render();
   }
 
-  /** Show the Yard of the manager running now, unless the view already shows it. */
+  /** Show the Yard of the manager running now, unless the view already shows it or is still loading it. */
   async render() {
     const view = this.view;
     if (!view?.visible) return;
@@ -62,18 +76,39 @@ class YardView {
     if (attempt !== this.attempt || this.view !== view || !view.visible) return;
     if (state.state !== 'ready' || !newEnough(state.version, VIEW_VERSION)) return this.notice(state);
     const src = compactSrc(state, this.look());
-    if (src === this.shown) return;
+    if (src === this.shown && !(this.loaded && !this.ready)) return;
     this.shown = src;
+    this.url = state.url;
     this.status = 'yard';
-    view.webview.html = pageHtml(src, state.url, crypto.randomBytes(16).toString('hex'));
+    this.page = crypto.randomBytes(16).toString('hex');
+    this.loaded = false;
+    this.ready = false;
+    view.webview.html = pageHtml(src, state.url, this.page);
+  }
+
+  /** The frame finished loading: unless its page already reached the manager, a manager that no longer answers left an error page. */
+  async check() {
+    const view = this.view;
+    const page = this.page;
+    this.loaded = true;
+    if (this.ready || await health(this.url)) return;
+    if (this.view !== view || this.page !== page || this.ready || !view.visible) return;
+    this.notice({ state: 'unavailable' });
   }
 
   notice(state) {
     this.shown = null;
+    this.page = null;
     this.status = state.state;
     let message;
     if (state.state === 'connecting') message = { title: 'Connecting to Agent Guild…', actions: [] };
-    else if (state.state === 'ready' || state.state === 'old') {
+    else if (state.state === 'unavailable') {
+      message = {
+        title: 'Agent Guild stopped responding',
+        text: 'Retry once it is running again, or open Agent Guild to start it.',
+        actions: [['retry', 'Retry'], ...OPEN],
+      };
+    } else if (state.state === 'ready' || state.state === 'old') {
       message = {
         title: `The Yard here needs Agent Guild ${VIEW_VERSION} or newer`,
         text: `The running Agent Guild is ${state.version}. Open Agent Guild to update it.`,
@@ -86,10 +121,18 @@ class YardView {
   receive(message) {
     if (message?.kind === 'action') {
       if (message.action === 'tab') Panel.open(this.events);
+      if (message.action === 'retry') this.render();
+      return;
+    }
+    if (message?.kind === 'frame') {
+      if (message.page === this.page) this.check();
       return;
     }
     if (message?.kind !== 'page') return;
-    if (message.type === 'ready') this.events.viewReady.fire(message.version);
+    if (message.type === 'ready' && message.page === this.page) {
+      this.ready = true;
+      this.events.viewReady.fire(message.version);
+    }
     if (message.type === 'expand') Panel.open(this.events, undefined, sessionId(message.session));
     if (message.type === 'open') {
       const url = webUrl(message.url);
