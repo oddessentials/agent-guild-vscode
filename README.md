@@ -1,6 +1,6 @@
 # Agent Guild for VS Code
 
-Watch your AI coding agents come alive in a 3D world, in a VS Code tab. Claude Code, Codex CLI, Antigravity CLI, Grok Build, Docker Agent and your own shell each get a hall, and every session is a character at work.
+Watch your AI coding agents come alive in a 3D world, in a VS Code tab or in a small view beside your code. Claude Code, Codex CLI, Antigravity CLI, Grok Build, Docker Agent and your own shell each get a hall, and every session is a character at work.
 
 ![Six real agent sessions in the Guild Yard: the characters walk to their halls and start working, then Claude Code's terminal opens with its three helper agents](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/yard.gif)
 
@@ -19,6 +19,15 @@ To open it, run **Agent Guild: Open the Yard** from the Command Palette. **Agent
 [Try the Yard in your browser](https://oddessentials.github.io/agent-guild/?view=yard) (simulated, nothing installed), or watch the trailer:
 
 [![Agent Guild: The Yard Update trailer on YouTube](https://i.ytimg.com/vi/Zttp-vs_6z0/maxresdefault.jpg)](https://www.youtube.com/watch?v=Zttp-vs_6z0)
+
+## The Yard beside your code
+
+Open **Agent Guild** in the Explorer to keep a small Yard in view while you work. Drag it to the bottom panel if you prefer it there.
+
+- It shows the Yard alone, in the world and theme you last chose in the tab.
+- Double-click a character to open its terminal in the Agent Guild tab.
+- It draws nothing while it is collapsed or hidden.
+- If Agent Guild is not running or stops responding, the view says so and offers **Open Agent Guild**, or **Retry**.
 
 ## The tab
 
@@ -51,7 +60,7 @@ Agent Guild runs your coding tools side by side, in real terminals that keep run
 ## Requirements
 
 - Node.js 22 or newer.
-- Agent Guild 1.2.0 or newer: `npm install -g @oddessentials/agent-guild`. If it is missing, the tab offers **Install**, which runs that command in a terminal. If it is older, the tab says so and opens it in your browser, where **Update** is. **Agent Guild: Open the Yard** needs 1.3.0 or newer; with 1.2, choose **Settings → View → Yard** in the tab.
+- Agent Guild 1.2.0 or newer: `npm install -g @oddessentials/agent-guild`. If it is missing, the tab offers **Install**, which runs that command in a terminal. If it is older, the tab says so and opens it in your browser, where **Update** is. **Agent Guild: Open the Yard** needs 1.3.0 or newer; with 1.2, choose **Settings → View → Yard** in the tab. The view beside your code needs 1.5.0 or newer; with an older Agent Guild it says so.
 - VS Code 1.85 or newer, or an editor built on it.
 - For the Yard: WebGL, and a one-time 255 MB download of its art the first time it opens. Everything else keeps working meanwhile, and after that it works offline. Without WebGL, the tab offers **Show Cards**.
 
@@ -61,7 +70,7 @@ From 1.0.0 the version follows semantic versioning: a new major version only whe
 
 ## Known limits
 
-- While the Agent Guild tab has keyboard focus, VS Code's own shortcuts, such as the Command Palette, go to the page. Click outside the tab to use them.
+- While the Agent Guild tab or view has keyboard focus, VS Code's own shortcuts, such as the Command Palette, go to the page. Click outside it to use them.
 - Dictate is not offered in the tab. Use it from the browser.
 - In a remote window (SSH, WSL, a container), the tab shows the Agent Guild on your own computer, not on the remote one.
 - vscode.dev and other editors in a browser are not supported.

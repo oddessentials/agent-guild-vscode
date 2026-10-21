@@ -57,7 +57,9 @@
     "agent visualization",
     "animated characters",
     "subagents",
-    "three.js"
+    "three.js",
+    "companion",
+    "sidebar"
   ],
   "extensionKind": [
     "ui"
