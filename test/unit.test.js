@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { dataDir, readManager, newEnough, startFailure, webUrl } = require('../src/manager');
+const { dataDir, readManager, newEnough, startFailure, pageSrc, webUrl } = require('../src/manager');
 
 test('the data folder follows agent-guild on every platform', () => {
   assert.equal(dataDir({ AGENT_GUILD_HOME: 'scratch' }, 'linux', '/home/a'), path.resolve('scratch'));
@@ -36,6 +36,14 @@ test('the version gate admits the minimum, later releases and development builds
   assert.equal(newEnough('1.10.0', '1.2.0'), true);
   assert.equal(newEnough('2.0.0', '1.2.0'), true);
   assert.equal(newEnough('0.0.0-development', '1.2.0'), true);
+});
+
+test('the page opens the asked-for view only on a manager whose page can', () => {
+  const manager = { url: 'http://127.0.0.1:47821', token: 'ab'.repeat(24) };
+  assert.equal(pageSrc({ ...manager, version: '1.3.0' }, 'yard'), `http://127.0.0.1:47821/#token=${manager.token}&view=yard`);
+  assert.equal(pageSrc({ ...manager, version: '0.0.0-development' }, 'yard'), `http://127.0.0.1:47821/#token=${manager.token}&view=yard`);
+  assert.equal(pageSrc({ ...manager, version: '1.2.0' }, 'yard'), `http://127.0.0.1:47821/#token=${manager.token}`);
+  assert.equal(pageSrc({ ...manager, version: '1.3.0' }, null), `http://127.0.0.1:47821/#token=${manager.token}`);
 });
 
 test('links open only as http(s), and a failed start never shows the token', () => {

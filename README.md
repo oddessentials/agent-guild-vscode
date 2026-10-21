@@ -1,8 +1,26 @@
 # Agent Guild for VS Code
 
-Open [Agent Guild](https://github.com/oddessentials/agent-guild) in an editor tab: launch and watch your AI coding-assistant sessions without leaving your editor.
+Watch your AI coding agents come alive in a 3D world, in a VS Code tab. Claude Code, Codex CLI, Antigravity CLI, Grok Build, Docker Agent and your own shell each get a hall, and every session is a character at work.
 
-![Agent Guild in a VS Code editor tab](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/screenshot.png)
+![Six real agent sessions in the Guild Yard: the characters walk to their halls and start working, then Claude Code's terminal opens with its three helper agents](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/yard.gif)
+
+## The Yard
+
+- Every session is a character. It works at its tool's hall while its terminal is busy, and walks off to rest when it goes quiet. There is nothing to set up.
+- Helper agents appear beside their character: Claude Code's, Codex CLI's and Docker Agent's on their own, Grok Build's once you turn on **Agent reporting** on its card.
+- Halls glow while their sessions work, and the roster lists every tool and session.
+- Double-click a character to open its real terminal.
+- Six worlds: The Guild Yard, Operations Campus, Orbital Station, The Living Grove, Goblinville Works and Gnomeland Village.
+
+![The same six sessions in each of the six worlds](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/worlds.jpg)
+
+To open it, run **Agent Guild: Open the Yard** from the Command Palette. **Agent Guild: Open** then keeps opening the Yard, until you choose **Cards** under **Settings → View** in the tab. Pick a world under **Settings → Skin**.
+
+[Try the Yard in your browser](https://oddessentials.github.io/agent-guild/?view=yard) (simulated, nothing installed), or watch the trailer:
+
+[![Agent Guild: The Yard Update trailer on YouTube](https://i.ytimg.com/vi/Zttp-vs_6z0/maxresdefault.jpg)](https://www.youtube.com/watch?v=Zttp-vs_6z0)
+
+## The tab
 
 - **Agent Guild: Open** in the Command Palette, or **Agent Guild** in the status bar.
 - If no session manager is running, one starts. If one is running, the tab connects to it.
@@ -12,9 +30,9 @@ Open [Agent Guild](https://github.com/oddessentials/agent-guild) in an editor ta
 
 ![Agent Guild opening from the status bar, then a Shell session starting from its card](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/demo.gif)
 
-## What Agent Guild does
+## Everything else Agent Guild does
 
-Agent Guild runs Claude Code, Codex CLI, Antigravity CLI, Grok Build, Docker Agent and your own shell side by side, in real terminals that keep running when the page closes.
+Agent Guild runs your coding tools side by side, in real terminals that keep running when the page closes.
 
 - One card per tool: install and update it, start sessions, and see its helper agents and the model in use.
 - Two terminals side by side with **Split**.
@@ -33,8 +51,9 @@ Agent Guild runs Claude Code, Codex CLI, Antigravity CLI, Grok Build, Docker Age
 ## Requirements
 
 - Node.js 22 or newer.
-- Agent Guild 1.2.0 or newer: `npm install -g @oddessentials/agent-guild`. If it is missing, the tab offers **Install**, which runs that command in a terminal. If it is older, the tab says so and opens it in your browser, where **Update** is.
+- Agent Guild 1.2.0 or newer: `npm install -g @oddessentials/agent-guild`. If it is missing, the tab offers **Install**, which runs that command in a terminal. If it is older, the tab says so and opens it in your browser, where **Update** is. **Agent Guild: Open the Yard** needs 1.3.0 or newer; with 1.2, choose **Settings → View → Yard** in the tab.
 - VS Code 1.85 or newer, or an editor built on it.
+- For the Yard: WebGL, and a one-time 255 MB download of its art the first time it opens. Everything else keeps working meanwhile, and after that it works offline. Without WebGL, the tab offers **Show Cards**.
 
 The extension has no settings.
 
@@ -46,6 +65,10 @@ From 1.0.0 the version follows semantic versioning: a new major version only whe
 - Dictate is not offered in the tab. Use it from the browser.
 - In a remote window (SSH, WSL, a container), the tab shows the Agent Guild on your own computer, not on the remote one.
 - vscode.dev and other editors in a browser are not supported.
+
+## Agent Guild: World
+
+[Agent Guild: World](https://agentguild.oddessentials.ai/), coming soon to Steam, shows the same sessions as a crew at work in a living 3D world, on Windows, macOS and Linux. It runs on Agent Guild, which stays free.
 
 ## Development
 

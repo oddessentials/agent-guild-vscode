@@ -7,6 +7,8 @@ const { spawn } = require('child_process');
 
 /** The first manager whose page VS Code may frame and that talks to this extension. */
 const MIN_VERSION = '1.2.0';
+/** The first manager whose page opens the view VS Code asks for. */
+const YARD_VERSION = '1.3.0';
 const PACKAGE = '@oddessentials/agent-guild';
 
 /** The manager's per-user data folder, by the same rules as agent-guild's src/manager/config.mjs. */
@@ -100,6 +102,13 @@ async function locate() {
   return { state: newEnough(version) ? 'ready' : 'old', version, ...found };
 }
 
+/** The page's address in the tab, opening `view` when that manager's page can. */
+function pageSrc({ url, token, version }, view) {
+  const hash = new URLSearchParams({ token });
+  if (view && newEnough(version, YARD_VERSION)) hash.set('view', view);
+  return `${url}/#${hash}`;
+}
+
 /** The absolute http(s) URL `href` names, or null. */
 function webUrl(href) {
   try {
@@ -110,4 +119,4 @@ function webUrl(href) {
   }
 }
 
-module.exports = { MIN_VERSION, PACKAGE, dataDir, readManager, health, newEnough, locate, startFailure, webUrl };
+module.exports = { MIN_VERSION, YARD_VERSION, PACKAGE, dataDir, readManager, health, newEnough, locate, startFailure, pageSrc, webUrl };
