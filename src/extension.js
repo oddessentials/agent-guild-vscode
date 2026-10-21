@@ -6,6 +6,7 @@ const { Panel, VIEW_TYPE } = require('./panel');
 function activate(context) {
   const ready = new vscode.EventEmitter();
   const open = () => Panel.open(ready);
+  const openYard = () => Panel.open(ready, 'yard');
 
   const button = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   button.text = '$(organization) Agent Guild';
@@ -17,12 +18,13 @@ function activate(context) {
     ready,
     button,
     vscode.commands.registerCommand('agentGuild.open', open),
+    vscode.commands.registerCommand('agentGuild.openYard', openYard),
     vscode.window.registerWebviewPanelSerializer(VIEW_TYPE, {
       deserializeWebviewPanel: async (panel) => Panel.revive(panel, ready),
     }),
   );
   // For the extension's own tests: open the tab and hear when the page reached its manager.
-  return { open, onReady: ready.event };
+  return { open, openYard, onReady: ready.event };
 }
 
 module.exports = { activate, deactivate() {} };

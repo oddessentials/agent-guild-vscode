@@ -2,7 +2,7 @@
 
 const vscode = require('vscode');
 const crypto = require('crypto');
-const { MIN_VERSION, PACKAGE, health, locate, webUrl } = require('./manager');
+const { MIN_VERSION, YARD_VERSION, PACKAGE, health, locate, newEnough, pageSrc, webUrl } = require('./manager');
 
 const VIEW_TYPE = 'agentGuild.page';
 const NODE_URL = 'https://nodejs.org/en/download';
@@ -11,17 +11,19 @@ class Panel {
   /** The one open tab, if any. */
   static current = null;
 
-  /** Bring the tab forward, connecting first if the manager went away or moved. */
-  static async open(ready) {
+  /** Bring the tab forward, connecting first if the manager went away or moved, and show `view` if one is asked for. */
+  static async open(ready, view) {
     if (Panel.current) {
       Panel.current.panel.reveal();
-      return Panel.current.refresh();
+      return Panel.current.request(view);
     }
     const panel = vscode.window.createWebviewPanel(VIEW_TYPE, 'Agent Guild', vscode.ViewColumn.Active, {
       enableScripts: true,
       retainContextWhenHidden: true,
     });
-    return new Panel(panel, ready).connect();
+    const tab = new Panel(panel, ready);
+    tab.view = view;
+    return tab.connect();
   }
 
   /** A tab VS Code brought back after a restart. */
@@ -36,6 +38,7 @@ class Panel {
     this.ready = ready;
     this.state = null;
     this.connecting = null;
+    this.view = null;
     panel.iconPath = vscode.Uri.joinPath(vscode.Uri.file(__dirname), '..', 'media', 'icon.png');
     panel.webview.options = { enableScripts: true };
     panel.onDidDispose(() => { if (Panel.current === this) Panel.current = null; });
@@ -63,10 +66,27 @@ class Panel {
     return this.connect();
   }
 
+  /** A view asked for while the tab is open: the page is loaded again only if its manager moved. */
+  async request(view) {
+    this.view = view;
+    await this.refresh();
+    const asked = this.state?.state === 'ready' && this.take();
+    if (asked) this.panel.webview.postMessage({ kind: 'view', view: asked });
+  }
+
+  /** The asked-for view, once. A blocked tab keeps it until the page can show it. */
+  take() {
+    const view = this.view;
+    this.view = null;
+    if (!view || newEnough(this.state.version, YARD_VERSION)) return view;
+    vscode.window.showInformationMessage(`Opening the Yard from VS Code needs Agent Guild ${YARD_VERSION} or newer. Update Agent Guild, or choose Settings in the tab, then Yard under View.`);
+    return null;
+  }
+
   show(state) {
     this.state = state;
     const nonce = crypto.randomBytes(16).toString('hex');
-    this.panel.webview.html = state.state === 'ready' ? pageHtml(state, nonce) : messageHtml(state, nonce);
+    this.panel.webview.html = state.state === 'ready' ? pageHtml(pageSrc(state, this.take()), state.url, nonce) : messageHtml(state, nonce);
   }
 
   receive(message) {
@@ -118,18 +138,32 @@ class Panel {
 
 const escape = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-function pageHtml({ url, token }, nonce) {
+function pageHtml(src, url, nonce) {
   return `<!doctype html><html><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; frame-src ${url}; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'">
 <style>html,body{margin:0;padding:0;height:100%;overflow:hidden}iframe{display:block;border:0;width:100%;height:100%}</style>
-</head><body><iframe id="page" title="Agent Guild" src="${escape(`${url}/#token=${token}`)}" allow="clipboard-read; clipboard-write"></iframe>
+</head><body><iframe id="page" title="Agent Guild" src="${escape(src)}" allow="clipboard-read; clipboard-write"></iframe>
 <script nonce="${nonce}">
 const vscode = acquireVsCodeApi();
 const frame = document.getElementById('page');
 const origin = ${JSON.stringify(url)};
+// The page listens for a view once it has loaded.
+let loaded = false;
+let waiting = null;
+const showView = (view) => frame.contentWindow.postMessage({ source: 'agent-guild-vscode', type: 'view', view }, origin);
+frame.addEventListener('load', () => {
+  loaded = true;
+  if (waiting) showView(waiting);
+  waiting = null;
+});
 // Only the framed page's own messages are passed on.
 addEventListener('message', (event) => {
-  if (event.source !== frame.contentWindow || event.origin !== origin) return;
+  if (event.source !== frame.contentWindow) {
+    const view = event.data?.kind === 'view' && event.data.view;
+    if (view === 'cards' || view === 'yard') loaded ? showView(view) : (waiting = view);
+    return;
+  }
+  if (event.origin !== origin) return;
   const data = event.data;
   if (!data || data.source !== 'agent-guild') return;
   vscode.postMessage({ kind: 'page', type: data.type, url: data.url, version: data.version });

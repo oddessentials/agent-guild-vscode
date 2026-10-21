@@ -14,7 +14,7 @@ Watch your AI coding agents come alive in a 3D world, in a VS Code tab. Claude C
 
 ![The same six sessions in each of the six worlds](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/worlds.jpg)
 
-To open it, choose **Settings** in the tab, then **Yard** under **View**. Pick a world under **Skin**.
+To open it, run **Agent Guild: Open the Yard** from the Command Palette. **Agent Guild: Open** then keeps opening the Yard, until you choose **Cards** under **Settings → View** in the tab. Pick a world under **Settings → Skin**.
 
 [Try the Yard in your browser](https://oddessentials.github.io/agent-guild/?view=yard) (simulated, nothing installed), or watch the trailer:
 
@@ -51,7 +51,7 @@ Agent Guild runs your coding tools side by side, in real terminals that keep run
 ## Requirements
 
 - Node.js 22 or newer.
-- Agent Guild 1.2.0 or newer: `npm install -g @oddessentials/agent-guild`. If it is missing, the tab offers **Install**, which runs that command in a terminal. If it is older, the tab says so and opens it in your browser, where **Update** is.
+- Agent Guild 1.2.0 or newer: `npm install -g @oddessentials/agent-guild`. If it is missing, the tab offers **Install**, which runs that command in a terminal. If it is older, the tab says so and opens it in your browser, where **Update** is. **Agent Guild: Open the Yard** needs 1.3.0 or newer; with 1.2, choose **Settings → View → Yard** in the tab.
 - VS Code 1.85 or newer, or an editor built on it.
 - For the Yard: WebGL, and a one-time 255 MB download of its art the first time it opens. Everything else keeps working meanwhile, and after that it works offline. Without WebGL, the tab offers **Show Cards**.
 

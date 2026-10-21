@@ -73,6 +73,11 @@
         "command": "agentGuild.open",
         "title": "Open",
         "category": "Agent Guild"
+      },
+      {
+        "command": "agentGuild.openYard",
+        "title": "Open the Yard",
+        "category": "Agent Guild"
       }
     ]
   },
