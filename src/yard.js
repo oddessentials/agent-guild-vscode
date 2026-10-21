@@ -22,6 +22,9 @@ class YardView {
     this.loaded = false;
     this.ready = false;
     this.attempt = 0;
+    this.rendering = false;
+    // Goes up each time the view hides, which ends its page.
+    this.shows = 0;
     this.status = null;
     // The tab's look, kept for the next time the view opens.
     events.look.event((look) => {
@@ -32,6 +35,10 @@ class YardView {
     });
     // The tab reached a manager, maybe a new one.
     events.connected.event(() => this.render());
+    // The tab's page reconnected in place, as after an upgrade's restart: a notice may be out of date.
+    events.ready.event(() => {
+      if (!this.shown && !this.rendering) this.render();
+    });
   }
 
   look() {
@@ -45,6 +52,7 @@ class YardView {
     view.onDidChangeVisibility(() => {
       // A hidden view loses its page; VS Code loads it again when the view shows.
       if (!view.visible) {
+        this.shows++;
         this.loaded = false;
         this.ready = false;
         return;
@@ -66,6 +74,7 @@ class YardView {
     const view = this.view;
     if (!view?.visible) return;
     const attempt = ++this.attempt;
+    this.rendering = true;
     if (!this.shown) this.notice({ state: 'connecting' });
     let state;
     try {
@@ -73,6 +82,7 @@ class YardView {
     } catch (err) {
       state = { state: 'failed', detail: err.message };
     }
+    if (attempt === this.attempt) this.rendering = false;
     if (attempt !== this.attempt || this.view !== view || !view.visible) return;
     if (state.state !== 'ready' || !newEnough(state.version, VIEW_VERSION)) return this.notice(state);
     const src = compactSrc(state, this.look());
@@ -90,9 +100,10 @@ class YardView {
   async check() {
     const view = this.view;
     const page = this.page;
+    const shows = this.shows;
     this.loaded = true;
     if (this.ready || await health(this.url)) return;
-    if (this.view !== view || this.page !== page || this.ready || !view.visible) return;
+    if (this.view !== view || this.page !== page || this.shows !== shows || this.ready || !view.visible) return;
     this.notice({ state: 'unavailable' });
   }
 
