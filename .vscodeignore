@@ -1,7 +1,9 @@
 .git/
 .github/
 .gitignore
+.releaserc.json
 node_modules/
 .vscode-test/
 test/
 *.vsix
+media/screenshot.png
