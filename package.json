@@ -1,0 +1,54 @@
+{
+  "name": "agent-guild",
+  "displayName": "Agent Guild",
+  "description": "Launch and watch your AI coding-assistant sessions from an editor tab, with the same sessions your browser shows.",
+  "version": "0.1.0",
+  "publisher": "oddessentials",
+  "license": "SEE LICENSE IN LICENSE",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oddessentials/agent-guild-vscode.git"
+  },
+  "homepage": "https://github.com/oddessentials/agent-guild#readme",
+  "bugs": {
+    "url": "https://github.com/oddessentials/agent-guild-vscode/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "agents",
+    "claude code",
+    "codex",
+    "terminal",
+    "sessions"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "main": "src/extension.js",
+  "activationEvents": [
+    "onStartupFinished",
+    "onWebviewPanel:agentGuild.page"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentGuild.open",
+        "title": "Open",
+        "category": "Agent Guild"
+      }
+    ]
+  },
+  "scripts": {
+    "test": "node --test test/unit.test.js",
+    "test:e2e": "node test/e2e/run.js"
+  },
+  "devDependencies": {
+    "@vscode/test-electron": "3.1.0"
+  }
+}
