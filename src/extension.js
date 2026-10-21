@@ -1,12 +1,19 @@
-// Agent Guild in an editor tab. The session manager owns the sessions; closing the tab or VS Code leaves them running.
+// Agent Guild in an editor tab, and its Yard in a small view. The session manager owns the sessions; closing either or VS Code leaves them running.
 
 const vscode = require('vscode');
 const { Panel, VIEW_TYPE } = require('./panel');
+const { YardView, VIEW_ID } = require('./yard');
 
 function activate(context) {
-  const ready = new vscode.EventEmitter();
-  const open = () => Panel.open(ready);
-  const openYard = () => Panel.open(ready, 'yard');
+  const events = {
+    ready: new vscode.EventEmitter(),
+    viewReady: new vscode.EventEmitter(),
+    look: new vscode.EventEmitter(),
+    connected: new vscode.EventEmitter(),
+  };
+  const open = () => Panel.open(events);
+  const openYard = () => Panel.open(events, 'yard');
+  const yard = new YardView(context.globalState, events);
 
   const button = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   button.text = '$(organization) Agent Guild';
@@ -15,16 +22,17 @@ function activate(context) {
   button.show();
 
   context.subscriptions.push(
-    ready,
+    ...Object.values(events),
     button,
     vscode.commands.registerCommand('agentGuild.open', open),
     vscode.commands.registerCommand('agentGuild.openYard', openYard),
     vscode.window.registerWebviewPanelSerializer(VIEW_TYPE, {
-      deserializeWebviewPanel: async (panel) => Panel.revive(panel, ready),
+      deserializeWebviewPanel: async (panel) => Panel.revive(panel, events),
     }),
+    vscode.window.registerWebviewViewProvider(VIEW_ID, yard),
   );
-  // For the extension's own tests: open the tab and hear when the page reached its manager.
-  return { open, openYard, onReady: ready.event };
+  // For the extension's own tests: open the tab and the view, and hear when their pages reached the manager.
+  return { open, openYard, yard, onReady: events.ready.event, onViewReady: events.viewReady.event };
 }
 
 module.exports = { activate, deactivate() {} };

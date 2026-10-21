@@ -65,9 +65,20 @@
   "main": "src/extension.js",
   "activationEvents": [
     "onStartupFinished",
-    "onWebviewPanel:agentGuild.page"
+    "onWebviewPanel:agentGuild.page",
+    "onView:agentGuild.yard"
   ],
   "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "type": "webview",
+          "id": "agentGuild.yard",
+          "name": "Agent Guild",
+          "visibility": "collapsed"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "agentGuild.open",
