@@ -1,0 +1,63 @@
+name: Release
+
+# Every push to main runs CI. When package.json names a version that has no tag yet,
+# the same .vsix goes to the VS Code Marketplace and Open VSX, then becomes a GitHub release.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Version to release
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null; then
+            echo "v$version is already released."
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Package
+        if: steps.version.outputs.new == 'true'
+        run: |
+          npm ci
+          npx --yes @vscode/vsce@4.0.0 package --out "agent-guild-${{ steps.version.outputs.version }}.vsix"
+      # --skip-duplicate lets a rerun finish a release that stopped part way.
+      - name: Publish to the VS Code Marketplace
+        if: steps.version.outputs.new == 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx --yes @vscode/vsce@4.0.0 publish --skip-duplicate --packagePath "agent-guild-${{ steps.version.outputs.version }}.vsix"
+      - name: Publish to Open VSX
+        if: steps.version.outputs.new == 'true'
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: npx --yes ovsx@1.3.0 publish --skip-duplicate "agent-guild-${{ steps.version.outputs.version }}.vsix"
+      - name: GitHub release
+        if: steps.version.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" "agent-guild-${{ steps.version.outputs.version }}.vsix" \
+            --target "$GITHUB_SHA" --title "v${{ steps.version.outputs.version }}" --generate-notes
