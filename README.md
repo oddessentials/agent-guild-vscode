@@ -18,6 +18,8 @@ Open [Agent Guild](https://github.com/oddessentials/agent-guild) in an editor ta
 
 The extension has no settings.
 
+From 1.0.0 the version follows semantic versioning: a new major version only when the extension stops supporting a VS Code, Agent Guild or Node.js version listed here.
+
 ## Known limits
 
 - While the Agent Guild tab has keyboard focus, VS Code's own shortcuts, such as the Command Palette, go to the page. Click outside the tab to use them.
