@@ -4,7 +4,7 @@
   "description": "Watch Claude Code, Codex CLI, Antigravity CLI, Grok Build and Docker Agent sessions come alive as characters in a 3D world, and open any one's real terminal with a double-click.",
   "version": "0.0.0",
   "publisher": "OddEssentials",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "AGPL-3.0-only",
   "icon": "media/icon.png",
   "galleryBanner": {
     "color": "#1b1f2a",
