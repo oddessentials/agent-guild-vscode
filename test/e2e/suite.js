@@ -99,6 +99,7 @@ exports.run = async () => {
   console.log(`Agent Guild ${version} opened in an editor tab, reached its manager and stayed loaded.`);
 
   if (!newEnough(version, VIEW_VERSION)) {
+    assert.ok(!process.env.EXPECT_VIEW, `The view tests need Agent Guild ${VIEW_VERSION} or newer, but ${version} is running.`);
     await vscode.commands.executeCommand('agentGuild.yard.focus');
     await until(() => api.yard.status === 'ready', 'The view naming the release it needs');
     console.log(`The view asks for Agent Guild ${VIEW_VERSION} or newer.`);
