@@ -12,7 +12,11 @@ async function main() {
   const executable = process.env.VSCODE_EXECUTABLE || await downloadAndUnzipVSCode(process.env.VSCODE_VERSION || 'stable');
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-guild-vscode-'));
   const extensionsDir = path.join(scratch, 'extensions');
+  const userData = path.join(scratch, 'user-data');
   try {
+    // Otherwise VS Code replaces the 0.0.0 package under test with the Marketplace release.
+    fs.mkdirSync(path.join(userData, 'User'), { recursive: true });
+    fs.writeFileSync(path.join(userData, 'User', 'settings.json'), JSON.stringify({ 'extensions.autoUpdate': false, 'extensions.autoCheckUpdates': false }));
     if (process.env.VSIX) {
       const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(executable);
       const win = process.platform === 'win32';
@@ -27,8 +31,8 @@ async function main() {
       // With a package installed, the tests run from an empty host extension, so only the package is under test.
       extensionDevelopmentPath: process.env.VSIX ? path.resolve(__dirname, 'host') : path.resolve(__dirname, '../..'),
       extensionTestsPath: path.resolve(__dirname, 'suite.js'),
-      extensionTestsEnv: { AGENT_GUILD_HOME: process.env.AGENT_GUILD_HOME },
-      launchArgs: [`--extensions-dir=${extensionsDir}`, `--user-data-dir=${path.join(scratch, 'user-data')}`, '--disable-workspace-trust'],
+      extensionTestsEnv: { AGENT_GUILD_HOME: process.env.AGENT_GUILD_HOME, EXPECT_VIEW: process.env.EXPECT_VIEW || '' },
+      launchArgs: [`--extensions-dir=${extensionsDir}`, `--user-data-dir=${userData}`, '--disable-workspace-trust'],
     });
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
