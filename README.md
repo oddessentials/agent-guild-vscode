@@ -127,7 +127,7 @@ The extension talks only to the Agent Guild on your own computer, and collects n
 
 ## Agent Guild: World
 
-[Agent Guild: World](https://store.steampowered.com/app/5462970/Agent_Guild_World/) shows the same sessions as a crew at work in a living 3D world, free on Steam from November 2026, for Windows, macOS and Linux. [Wishlist it on Steam](https://store.steampowered.com/app/5462970/Agent_Guild_World/).
+[Agent Guild: World](https://store.steampowered.com/app/5462970/Agent_Guild_World/) shows the same sessions as a crew at work in a living 3D world, free on Steam for Windows, macOS and Linux. [Wishlist it on Steam](https://store.steampowered.com/app/5462970/Agent_Guild_World/).
 
 Agent Guild also opens your sessions on [Apple Vision Pro](https://apps.apple.com/us/app/agent-guild-remote/id6825451331), [Android](https://github.com/oddessentials/agent-guild-android/releases/latest) and any browser. Follow along on [YouTube](https://www.youtube.com/@Agent-Guild) and [X](https://x.com/agentguild_3d), or visit [the website](https://agentguild.oddessentials.ai/).
 
