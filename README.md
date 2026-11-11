@@ -145,6 +145,6 @@ Pull requests are squash-merged, and their titles are Conventional Commits. Merg
 
 ## License
 
-Copyright (c) 2026 Odd Essentials. Free to use, and open source under the [GNU AGPL 3.0](LICENSE), like Agent Guild.
+Copyright (c) 2026 Odd Essentials. Free to use and open source under the [GNU AGPL 3.0](LICENSE), like Agent Guild.
 
 Claude Code, Codex, Antigravity, Grok and Docker are trademarks of Anthropic, OpenAI, Google, xAI and Docker. Agent Guild is not affiliated with or endorsed by them.
