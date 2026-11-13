@@ -59,7 +59,7 @@
     "subagents",
     "three.js",
     "companion",
-    "sidebar"
+    "virtual office"
   ],
   "extensionKind": [
     "ui"
