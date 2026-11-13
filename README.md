@@ -1,8 +1,10 @@
 # Agent Guild for VS Code
 
-Watch every coding-agent session come alive as a character in a 3D world, in a VS Code tab or right beside your code. Claude Code, Codex CLI, Antigravity CLI, Grok Build and Docker Agent run side by side in real terminals, each on your own account, as in any terminal.
-
 [![Six real agent sessions in the Guild Yard: the characters walk to their halls and start working, then Claude Code's terminal opens with its three helper agents](https://raw.githubusercontent.com/oddessentials/agent-guild-vscode/main/media/yard.gif)](https://oddessentials.github.io/agent-guild/?view=yard&skin=guild&theme=dark)
+
+**Your agents, your world, in any style you can imagine.** Every coding-agent session is a character in a living 3D world, in a VS Code tab or right beside your code. Double-click one to open its real terminal.
+
+Every agent you use, not just one: Claude Code, Codex CLI, Antigravity CLI, Grok Build and Docker Agent run side by side in real terminals, each on your own account, as in any terminal.
 
 **[Try it in your browser](https://oddessentials.github.io/agent-guild/?view=yard&skin=guild&theme=dark)**: simulated, free, no account and nothing installed.
 
